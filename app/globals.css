@@ -2,6 +2,22 @@
 @import "tw-animate-css";
 @import "../vendor/shadcn-tailwind-4.13.0.css";
 
+.decision-field { display: grid; gap: .5rem; margin: 1rem 0; font-size: .95rem; }
+.decision-field input, .decision-field textarea, .decision-field select { width: 100%; padding: .75rem; border: 1px solid #789387; border-radius: .5rem; color: inherit; background: transparent; font: inherit; }
+.decision-field select option { color: #182c25; background: #fff; }
+.decision-choice { border: 0; margin: 1rem 0; padding: 0; }
+.decision-choice legend { margin-bottom: .5rem; }
+.decision-result { border-left: 3px solid #789387; padding-left: .85rem; margin: 1rem 0; }
+.decision-check { display: flex; align-items: flex-start; gap: .65rem; font-size: .9rem; }
+.decision-check input { margin-top: .25rem; }
+.decision-actions { display: grid; gap: .75rem; }
+.purchase-pause blockquote { border-left: 3px solid #789387; padding-left: .85rem; overflow-wrap: anywhere; }
+.scenario-box small { display: block; margin-top: .75rem; line-height: 1.5; }
+.demo-caption { font-size: .875rem; color: inherit; opacity: .8; margin-bottom: .75rem; }
+.history-tools { margin-bottom: 1rem; border-bottom: 1px solid #78938755; padding-bottom: .75rem; font-size: .875rem; }
+.history-tools summary { cursor: pointer; padding: .4rem 0; }
+.history-tools p { max-width: 65ch; }
+
 @utility scrollbar-thin {
   scrollbar-width: thin;
 }

@@ -1,19 +1,18 @@
 'use client';
 import { useState } from 'react';
-import { purchaseScenario } from '../lib/purchase-scenario';
-
-const money=(n:number)=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(n/100);
+const money=(n:number)=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0}).format(n/100);
 export function PurchaseSimulator({price,blocked,target,onSave,saving}:{price:number|null;blocked:boolean;target:number|null;onSave:(target:number)=>Promise<boolean>;saving:boolean}) {
-  const [budget,setBudget]=useState('');
-  const [goal,setGoal]=useState(target==null?'':String(target/100));
-  const [days,setDays]=useState('30');
-  const [cost,setCost]=useState('0');
-  const result = budget.trim() && goal.trim() && days.trim() && cost.trim() ? purchaseScenario(price,Math.round(Number(budget)*100),Math.round(Number(goal)*100),Number(days),Math.round(Number(cost)*100)) : null;
-  return <div className="scenario-box"><h3>¿Comprar o esperar?</h3><p>Compara tu presupuesto con un precio objetivo y el costo que tendría esperar.</p>
-    <div className="scenario-tabs">{[['0','Lo necesito hoy'],['30','Puedo esperar']].map(([value,label])=><button key={value} aria-pressed={days===value} onClick={()=>setDays(value)}>{label}</button>)}</div>
-    <div style={{display:'grid',gap:12,marginTop:16}}>{[['Presupuesto máximo (MXN)',budget,setBudget,'0.01'],['Precio que esperas (MXN)',goal,setGoal,'0.01'],['Días que puedes esperar',days,setDays,'1'],['Costo por día de esperar (MXN)',cost,setCost,'0.01']].map(([label,value,setter,step])=><label key={String(label)} style={{display:'grid',gap:6}}>{String(label)}<input aria-label={String(label)} type="number" min="0" step={String(step)} value={String(value)} onChange={e=>(setter as (v:string)=>void)(e.target.value)} style={{width:'100%',padding:10,border:'1px solid #789387',borderRadius:6,background:'transparent',color:'inherit'}}/></label>)}</div>
-    <p>El costo diario lo defines tú, por ejemplo, por alquilar un reemplazo. Usa cero si esperar no te cuesta.</p>
-    <div aria-live="polite">{blocked || price==null ? <p>Primero necesitamos un precio actual, disponible y con costo total confirmado.</p> : !result ? <p>Introduce un presupuesto y un objetivo positivos para calcular.</p> : <><h4>{result.title}</h4><p>Margen al comprar hoy: {money(result.remaining)}</p><p>Ahorro si alcanza tu objetivo: {money(result.saving)}<br/>Costo de esperar: {money(result.waitingCost)}<br/>Balance de esperar: {money(result.netSaving)}</p>{result.breakEvenDays!=null && <p>El ahorro cubriría hasta {result.breakEvenDays.toFixed(1)} días de espera.</p>}<button className="secondary-button" disabled={saving || Number(goal)<=0 || Number(goal)>10000000} onClick={()=>void onSave(Math.round(Number(goal)*100))}>Guardar este precio como objetivo</button></>}</div>
-    <p>Es un escenario calculado con tus supuestos, no una predicción de que el precio bajará.</p>
-  </div>;
+  const [urgency,setUrgency]=useState<'now'|'later'>('later');
+  const [limit,setLimit]=useState(target==null?'':String(target/100));
+  const value=Number(limit), minor=Math.round(value*100);
+  const valid=/^\d+(\.\d{1,2})?$/.test(limit)&&value>0&&value<=10000000;
+  const known=!blocked&&price!=null;
+  const gap=known&&valid ? price!-minor : null;
+  return <section className="scenario-box"><h3>Tu límite de compra</h3><p>Decide cuánto quieres pagar. Brizoa te muestra cuánto falta.</p>
+    <fieldset className="decision-choice"><legend>¿Lo necesitas pronto?</legend><div className="scenario-tabs"><button type="button" aria-pressed={urgency==='now'} onClick={()=>setUrgency('now')}>Sí, lo necesito</button><button type="button" aria-pressed={urgency==='later'} onClick={()=>setUrgency('later')}>Puedo esperar</button></div></fieldset>
+    <label className="decision-field">Como máximo pagaría (MXN)<input type="number" min="0.01" step="0.01" max="10000000" placeholder="Escribe tu límite" value={limit} onChange={e=>setLimit(e.target.value)}/></label>
+    <div className="decision-result" aria-live="polite">{!valid ? <p>Escribe un importe para compararlo con el precio.</p> : !known ? <p>Puedes guardar tu límite de {money(minor)}. Falta un precio actual confirmado para compararlo.</p> : gap!>0 ? <><strong>Faltan {money(gap!)} para tu límite</strong><p>{urgency==='now'?'Busca una alternativa que entre en tu presupuesto. La urgencia no cambia tu límite.':'Puedes esperar a que alcance tu límite; no sabemos si bajará ni cuándo.'}</p></> : <><strong>El precio cabe en tu límite</strong><p>{money(-gap!)} por debajo de tu máximo. {urgency==='now'?'Si resuelve tu necesidad, revisa el total antes de comprar.':'No tienes que comprar por estar dentro del presupuesto. Puedes usar la pausa de compra.'}</p></>}</div>
+    <button type="button" className="secondary-button" disabled={!valid||saving} onClick={()=>void onSave(minor)}>{saving?'Guardando…':'Guardar mi límite'}</button>
+    <small>Guarda también el objetivo de alerta. El demo muestra avisos dentro de la app.</small>
+  </section>;
 }

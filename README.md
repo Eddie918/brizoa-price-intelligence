@@ -7,8 +7,9 @@ Una app para seguir precios y decidir cuándo comprar. Nació de una pregunta se
 ## Qué hace
 
 - Muestra el precio frente a su historial y permite explorar distintos periodos.
-- Compara comprar hoy con esperar, usando tu presupuesto, objetivo y costo de espera.
-- Permite organizar productos, guardar objetivos y exportar el radar.
+- Compara el precio con tu límite de compra y guarda objetivos.
+- Permite hacer una pausa: anotar por qué quieres algo y reconsiderarlo después.
+- Organiza productos, alertas y archivados.
 - Acepta historial propio en JSON.
 
 El demo usa tres productos de ejemplo y guarda los cambios en el navegador. Los datos importados se identifican por su fuente. La integración del backend con Apify obtiene precios actuales; no recupera el pasado.
@@ -34,7 +35,7 @@ Requiere Node 22.13+ y pnpm 11.25.0. El resultado se genera en `dist-demo/`.
 
 ## Cómo se interpreta el precio
 
-La lectura histórica compara ofertas equivalentes y requiere al menos 30 días previos de datos. El simulador es independiente: calcula el ahorro hipotético menos el costo de esperar que indique el usuario. No predice precios.
+La lectura histórica compara ofertas equivalentes y requiere al menos 30 días previos de datos. El límite de compra compara tu presupuesto con el precio disponible; no predice precios.
 
 [Formato de importación](docs/history.md) · [Seguridad](SECURITY.md)
 
