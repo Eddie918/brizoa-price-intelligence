@@ -1,4 +1,4 @@
-import { compactProductTitle } from './product-title';
+import { compactProductTitle } from './product-title.ts';
 
 export type ProductSnapshot = { title: string; imageUrl: string | null; currentMinor: number | null; currency: string; inStock: boolean | null; refreshedAt: string };
 

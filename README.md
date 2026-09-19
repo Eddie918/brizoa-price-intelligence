@@ -1,53 +1,51 @@
-# Brizoa · Price Intelligence for Smarter Purchases
+# Brizoa · Price Intelligence
 
-Plataforma privada de inteligencia de precios que convierte el historial de productos en recomendaciones de compra explicables.
+Radar de precios con decisiones explicables: posición histórica, cobertura de datos y objetivos de compra.
 
-**Demo:** https://brizoa.saul-ariasst.chatgpt.site
+## Demo de portafolio
 
-## Diferencial
+Destino de publicación: https://Eddie918.github.io/brizoa-price-intelligence/
 
-- No presenta un precio aislado: muestra su posición frente al historial comparable.
-- Separa evidencia, recomendación y urgencia personal para evitar falsas certezas.
-- Permite definir objetivos, pausar alertas, archivar o eliminar productos y exportar el radar.
-- Expone cuándo un dato es reciente, insuficiente o necesita verificación.
+Demo estático con tema oscuro, gráficas por periodo, búsqueda, objetivos, alertas locales, archivo y exportación. No consulta Amazon ni necesita credenciales. Los cambios se guardan únicamente en el navegador.
 
-## Incluido
-- App responsive, comparación histórica explicable, búsqueda, objetivos y archivo/reactivación.
-- GET/POST `/api/watchlist`, PATCH `/api/watchlist/:id`.
-- D1 con migraciones Drizzle; controles de propietario y validación estricta.
-- Identidad del perímetro autenticado del hosting. No exponer el Worker sin ese perímetro.
-- 22 pruebas del motor, parser y normalización de proveedor; compilación y type-check validados.
-- Logo SVG nativo positivo/negativo; licencia tipográfica en `LICENSE-fonts.txt`.
-- Autocompletado y limpieza de título desde URL, imagen, disponibilidad y precio actual mediante un actor externo de Apify.
-- Conexión automática controlada de fichas pendientes, actualización manual con límite de 24 horas y errores visibles del proveedor.
-- Títulos comerciales compactados automáticamente para conservar marca, producto y modelo sin textos promocionales extensos.
-- Exportación del radar a CSV, manifiesto instalable y diseño responsive.
-- Tema oscuro persistente, eliminación segura con cascada, resumen de cartera y nivel de evidencia explicable.
+Los tres productos de ejemplo tienen series sintéticas identificadas. Agregar una URL crea una ficha manual sin inventar precio ni historial. La importación JSON permite explorar registros propios o autorizados; su procedencia queda indicada, sin verificación independiente.
 
-## Amazon México (integración opcional de bajo costo)
+## Historial: alcance y límites
 
-Brizoa puede consultar el actor `junglee/amazon-crawler` de Apify. Configura el token únicamente en el servidor:
+- Apify obtiene una fotografía actual; no recupera el pasado.
+- El backend guarda observaciones confirmadas desde el inicio del seguimiento. Aún no hay recolector periódico autónomo.
+- Se exigen 30 días previos comparables para emitir una lectura histórica.
+- No se mezclan ofertas ni monedas. Un costo incompleto o desactualizado bloquea recomendaciones favorables.
+- No se implementó Keepa ni se promete acceso gratuito a su API.
 
-```text
-APIFY_TOKEN=...
-```
+## Importación JSON
 
-Al agregar o actualizar una ficha, Brizoa solicita título, imagen, disponibilidad y precio para `www.amazon.com.mx`. Existe caché de 24 horas y no se activan vendedores, variantes ni resolución de CAPTCHA para cuidar la cuota gratuita. Si la variable no existe, guarda una ficha manual segura y nunca expone credenciales al navegador.
+Hasta 2 MB y 5000 observaciones. El archivo contiene `asin`, `title`, `source` y `observations`. Cada observación incluye `at` (fecha ISO con zona horaria), `totalMinor` (centavos positivos), `currency: "MXN"`, `offerKey` (variante/vendedor/condición/envío), `inStock` y `complete` (booleanos).
 
-## Límites
-Los ejemplos usan datos congelados al 19 de septiembre de 2026. Para productos reales, cada consulta confirmada se guarda como observación y el historial se construye hacia adelante. Brizoa no está afiliada ni respaldada por Amazon. Sin correo, push, pagos ni ML.
-
-Antes de activar datos comerciales: verificar permisos, cobertura MX, conservación histórica y autorización para seguimiento/alertas. PA-API 5 fue sustituida por Creators API; cambiar API no concede automáticamente permiso para este caso de uso. Nombre y símbolo pendientes de disponibilidad comercial.
+Usa `complete: true` solo si conoces el costo total. No inventes registros para rellenar días vacíos. Se rechazan fechas futuras, duplicados e importes inválidos. Reemplazar un historial existente requiere confirmación. La fuente declarada por el usuario no certifica autenticidad.
 
 ## Desarrollo
-Node 22+, dependencias y lockfile existentes. `bash scripts/install-pnpm.sh`, `npm run dev`, `npm run build`. Type check: `node node_modules/typescript/bin/tsc --noEmit`. Pruebas: `node --experimental-strip-types --test tests/recommendation.test.mjs`.
 
-Las migraciones publicadas son inmutables; agregar nuevas cuando cambie el esquema. No hacer DDL en inicialización de peticiones. Los artefactos `dist`, bases locales, sesiones de QA y credenciales no se versionan.
+Node 22.13+ y pnpm 11.25.0.
 
-WebMCP: filtro opcional implementado con detección de soporte. El contexto de navegador de QA no expuso modelContext; validación específica no disponible. El filtro visible sí se comprobó.
+```sh
+pnpm install --frozen-lockfile
+node --experimental-strip-types --test tests/*.test.mjs
+pnpm exec tsc --noEmit
+pnpm exec vite --config vite.demo.config.ts
+pnpm exec vite build --config vite.demo.config.ts
+```
 
-## Contacto
+El demo se genera en `dist-demo/`. El workflow Portfolio Pages prueba, compila y publica ese directorio. En GitHub: Settings → Pages → Build and deployment → Source: GitHub Actions. El backend existente se despliega por separado y no se publica en Pages.
 
-- GitHub: https://github.com/Eddie918
-- Email: saul.ariasst@gmail.com
-- LinkedIn: https://www.linkedin.com/in/saularias
+## Seguridad
+
+Nunca introducir tokens en el demo. `APIFY_TOKEN` pertenece exclusivamente al servidor. `.env.example` no contiene valores y los archivos de entorno están ignorados. El backend requiere un perímetro autenticado: no exponer directamente su Worker sin adaptar la autenticación.
+
+No se incluyen bases personales ni secretos en Pages. Véase [SECURITY.md](SECURITY.md). Se conservan las licencias obligatorias y la configuración técnica necesaria del backend.
+
+## Autor y contacto
+
+Saúl Arias · [GitHub](https://github.com/Eddie918) · [LinkedIn](https://www.linkedin.com/in/saularias) · saul.ariasst@gmail.com
+
+Proyecto personal, no afiliado ni respaldado por Amazon. Licencia MIT.
