@@ -1,10 +1,11 @@
 import { demoItems, hydrateItem, DEMO_AS_OF, type Item } from '../lib/demo';
 import { recommend, parseAmazonInput } from '../lib/recommendation';
 import { validateHistory } from './history';
+import { importKeepaResponse } from '../lib/keepa-import';
 
 const key = 'brizoa-portfolio-v1';
 export function importHistory(value: unknown) {
-  const data = validateHistory(value), state = load();
+  const data = validateHistory(value && typeof value==='object' && 'products' in value ? importKeepaResponse(value) : value), state = load();
   const existing = state.items.find(p=>p.externalId===data.asin);
   if (existing && !window.confirm('¿Reemplazar el historial local de este producto por el archivo importado?')) return false;
   const item = existing ?? hydrateItem({id:crypto.randomUUID(),title:data.title,external_id:data.asin,url:`https://www.amazon.com.mx/dp/${data.asin}`,status:'active'});
