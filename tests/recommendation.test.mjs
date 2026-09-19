@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { recommend, parseAmazonInput } from '../lib/recommendation.ts';
+const now = new Date('2026-09-19T12:00:00Z');
+function series(n=91,current=10000) {return Array.from({length:n},(_,i)=>({at:new Date(+now-(n-1-i)*86400000).toISOString(),totalMinor:i===n-1?current:10000,currency:'MXN',offerKey:'same',inStock:true,complete:true}));}
+test('flat history is neutral, score 50',()=>{const r=recommend(series(),now);assert.equal(r.score,50);assert.equal(r.action,'neutral');});
+test('relative price and score do not change with unit scaling',()=>{const s=series(91,8500);const a=recommend(s,now),b=recommend(s.map(o=>({...o,totalMinor:o.totalMinor*100})),now);assert.equal(a.score,b.score);assert.equal(a.action,b.action);assert.equal(a.action,'buy');});
+test('high relative price recommends waiting without a probability',()=>{const r=recommend(series(91,12000),now);assert.equal(r.action,'wait');assert.equal(r.score,0);assert.equal('probability' in r,false);});
+test('29 prior days do not qualify',()=>assert.equal(recommend(series(30),now).score,null));
+test('30 prior days qualify',()=>assert.equal(recommend(series(31),now).score,50));
+test('repeated same-day observations do not create more history',()=>{const s=series(5);assert.equal(recommend([...s,...s,...s,...s,...s,...s,...s],now).score,null);});
+test('other currencies and sellers do not inflate comparable history',()=>{const s=series().map((o,i)=>i<70?{...o,currency:'USD',offerKey:'other'}:o);assert.equal(recommend(s,now).score,null);});
+test('stale current price cannot yield a buy recommendation',()=>assert.equal(recommend(series(91,8000),new Date(+now+37*3600000)).action,'stale'));
+test('out of stock is not treated as a discount',()=>{const s=series();s.at(-1).inStock=false;assert.equal(recommend(s,now).action,'unavailable');});
+test('unknown shipping means incomplete cost',()=>{const s=series();s.at(-1).complete=false;assert.equal(recommend(s,now).score,null);});
+test('invalid latest observation does not expose an old favorable price',()=>{const s=series();s.at(-1).totalMinor=-1;assert.equal(recommend(s,now).action,'verify');});
+test('extreme change is retained but gated for verification',()=>{const r=recommend(series(91,1000),now);assert.equal(r.action,'verify');assert.equal(r.current,1000);assert.equal(r.score,null);});
+test('future observations are not used',()=>{const s=series();s.push({...s.at(-1),at:new Date(+now+86400000).toISOString(),totalMinor:1000});assert.equal(recommend(s,now).score,50);});
+test('empty input has no made up price',()=>{const r=recommend([],now);assert.equal(r.current,null);assert.equal(r.score,null);});
+test('canonical Amazon URLs and ASINs',()=>{assert.equal(parseAmazonInput('b012345678').asin,'B012345678');assert.equal(parseAmazonInput('https://www.amazon.com.mx/title/dp/B012345678/ref=foo?tag=test').url,'https://www.amazon.com.mx/dp/B012345678');});
+test('untrusted destinations and ambiguous IDs are rejected',()=>{for(const input of ['http://www.amazon.com.mx/dp/B012345678','https://amazon.com.mx.evil.example/dp/B012345678','https://user:pass@amazon.com.mx/dp/B012345678','https://www.amazon.com.mx:8080/dp/B012345678','https://www.amazon.com.mx/dp/B0123456789','https://amzn.to/abc','https://127.0.0.1/dp/B012345678'])assert.throws(()=>parseAmazonInput(input));});

@@ -1,0 +1,10 @@
+{
+  "name": "Brizoa · Radar de compras",
+  "short_name": "Brizoa",
+  "description": "Compara precios y decide con perspectiva.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f8f3",
+  "theme_color": "#132a24",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
